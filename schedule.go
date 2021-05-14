@@ -57,6 +57,14 @@ func (s *Schedule) NewAppointment(dateTime time.Time) (schedulable, error) {
 	return newAppointment, nil
 }
 
+// NewSpecialAppointment add an appointment to the schedule without caring about the rules
+func (s *Schedule) NewSpecialAppointment(dateTime time.Time) (schedulable, error) {
+	newAppointment := appointment{datetime: dateTime}
+
+	s.appointments = append(s.appointments, newAppointment)
+	return newAppointment, nil
+}
+
 // Appointments returns the existing appointments of the schedule
 func (s *Schedule) Appointments() []schedulable {
 	return s.appointments
