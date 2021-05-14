@@ -7,8 +7,8 @@ import (
 
 // Schedule to store and retrieve appointments
 type Schedule struct {
-	StartTime    time.Time
-	EndTime      time.Time
+	// active       bool
+	rules        []rule
 	appointments []schedulable
 }
 
@@ -16,17 +16,43 @@ type schedulable interface {
 	Datetime() time.Time
 }
 
+// ErrInvalidAppointment is a generic error for appoinment related operations
+var ErrInvalidAppointment = errors.New("invalid appointment")
+
 // ErrOutOfTimeRange is the error given when try to make an appointmenrt out of the schedule range
-var ErrOutOfTimeRange = errors.New("The given time for the appointment is out of the range defined in the schedule")
+// var ErrOutOfDateOrTimeRange = errors.New("The given date or time for the appointment is out of the range defined in the schedule rules")
+
+func (s *Schedule) isApplicableAndValid(appointment schedulable) bool {
+	rules := s.getApplicableRulesFor(appointment)
+	if len(rules) == 0 {
+		return false
+	}
+
+	for _, rule := range rules {
+		if !rule.isValid(appointment) {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *Schedule) getApplicableRulesFor(appointment schedulable) []rule {
+	rules := []rule{}
+	for _, rule := range s.rules {
+		if rule.isApplicable(appointment) {
+			rules = append(rules, rule)
+		}
+	}
+	return rules
+}
 
 // NewAppointment add an appointment to the schedule if possible
 func (s *Schedule) NewAppointment(dateTime time.Time) (schedulable, error) {
-	if dateTime.Format("15:04:05") < s.StartTime.Format("15:04:05") ||
-		dateTime.Format("15:04:05") > s.EndTime.Format("15:04:05") {
-		return nil, ErrOutOfTimeRange
+	newAppointment := appointment{datetime: dateTime}
+	if !s.isApplicableAndValid(newAppointment) {
+		return nil, ErrInvalidAppointment
 	}
 
-	newAppointment := appointment{datetime: dateTime}
 	s.appointments = append(s.appointments, newAppointment)
 	return newAppointment, nil
 }
@@ -36,6 +62,8 @@ func (s *Schedule) Appointments() []schedulable {
 	return s.appointments
 }
 
+// func (s *Schedule) FreeAppointments() []schedulable
+
 type appointment struct {
 	datetime time.Time
 }
@@ -43,3 +71,5 @@ type appointment struct {
 func (a appointment) Datetime() time.Time {
 	return a.datetime
 }
+
+// type Scheduler struct

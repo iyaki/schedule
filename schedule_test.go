@@ -15,67 +15,51 @@ func TestAppointments(t *testing.T) {
 }
 
 func TestNewAppointment(t *testing.T) {
-	t.Run("Add new valid appointment to a schedule", func(t *testing.T) {
-		startTime := time.Date(0, 0, 0, 8, 0, 0, 0, time.UTC)
-		endTime := time.Date(0, 0, 0, 16, 0, 0, 0, time.UTC)
-		appointmentDateTime := time.Date(0, 0, 0, 9, 30, 0, 0, time.UTC)
-		schedule := Schedule{
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+	baseDateTime := time.Date(2021, time.May, 13, 14, 5, 0, 0, time.UTC)
 
-		newAppointment, err := schedule.NewAppointment(appointmentDateTime)
+	NewSchedule := func() Schedule {
+		schedule := Schedule{}
+
+		weekDay := baseDateTime.Weekday()
+		startDate := baseDateTime.AddDate(0, -14, 0)
+		endDate := baseDateTime.AddDate(0, 14, 0)
+		dailyStartTime := baseDateTime.Add(-time.Hour)
+		dailyEndTime := baseDateTime.Add(time.Hour)
+
+		schedule.rules = append(schedule.rules, dateTimeRule{
+			basicRule: basicRule{
+				weekDay:        weekDay,
+				startDate:      startDate,
+				endDate:        endDate,
+				dailyStartTime: dailyStartTime,
+				dailyEndTime:   dailyEndTime,
+			},
+		})
+		return schedule
+	}
+
+	t.Run("Add new valid appointment to a schedule", func(t *testing.T) {
+		schedule := NewSchedule()
+
+		newAppointment, err := schedule.NewAppointment(baseDateTime)
 
 		appointments := schedule.Appointments()
 		appointmentsAmmount := len(appointments)
 		gettedAppointment := appointments[0]
 
 		assertNoError(t, err)
-		assertEqual(t, appointmentDateTime, gettedAppointment.Datetime())
+		assertEqual(t, baseDateTime, gettedAppointment.Datetime())
 		assertEqual(t, newAppointment, gettedAppointment)
-		assertEqual(t, appointmentsAmmount, 1)
+		assertEqual(t, 1, appointmentsAmmount)
 	})
 
 	t.Run("Add new appointment to a schedule out of hour range", func(t *testing.T) {
-		startTime := time.Date(0, 0, 0, 8, 0, 0, 0, time.UTC)
-		endTime := time.Date(0, 0, 0, 16, 0, 0, 0, time.UTC)
-		appointmentDateTime := time.Date(0, 0, 0, 6, 30, 0, 0, time.UTC)
-		schedule := Schedule{
-			StartTime: startTime,
-			EndTime:   endTime,
-		}
+		schedule := NewSchedule()
 
-		newAppointment, err := schedule.NewAppointment(appointmentDateTime)
+		newAppointment, err := schedule.NewAppointment(baseDateTime.Add(10 * time.Hour))
 
-		appointmentsAmmount := len(schedule.Appointments())
-
-		assertError(t, err, ErrOutOfTimeRange)
-		assertEqual(t, newAppointment, nil)
-		assertEqual(t, appointmentsAmmount, 0)
+		assertError(t, err, ErrInvalidAppointment)
+		assertEqual(t, nil, newAppointment)
+		assertEqual(t, 0, len(schedule.Appointments()))
 	})
-}
-
-func assertEqual(t *testing.T, expected, got interface{}) {
-	t.Helper()
-	if expected != got {
-		t.Errorf("expected %v but got %v", expected, got)
-	}
-}
-
-func assertError(t *testing.T, got error, want error) {
-	t.Helper()
-	if got == nil {
-		t.Fatal("didn't get an error but wanted one")
-	}
-
-	if got != want {
-		t.Errorf("got %q, want %q", got, want)
-	}
-}
-
-func assertNoError(t *testing.T, got error) {
-	t.Helper()
-	if got != nil {
-		t.Fatal("getted an error but didn't want one")
-	}
 }
