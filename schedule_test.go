@@ -14,32 +14,19 @@ func TestAppointments(t *testing.T) {
 	assertEqual(t, testAppointment, got)
 }
 
+func newTestSchedule(baseDateTime time.Time) Schedule {
+	schedule := Schedule{}
+
+	schedule.rules = append(schedule.rules, newTestRule(baseDateTime))
+	
+	return schedule
+}
+
 func TestNewAppointment(t *testing.T) {
 	baseDateTime := time.Date(2021, time.May, 13, 14, 5, 0, 0, time.UTC)
 
-	NewSchedule := func() Schedule {
-		schedule := Schedule{}
-
-		weekDay := baseDateTime.Weekday()
-		startDate := baseDateTime.AddDate(0, -14, 0)
-		endDate := baseDateTime.AddDate(0, 14, 0)
-		dailyStartTime := baseDateTime.Add(-time.Hour)
-		dailyEndTime := baseDateTime.Add(time.Hour)
-
-		schedule.rules = append(schedule.rules, dateTimeRule{
-			basicRule: basicRule{
-				weekDay:        weekDay,
-				startDate:      startDate,
-				endDate:        endDate,
-				dailyStartTime: dailyStartTime,
-				dailyEndTime:   dailyEndTime,
-			},
-		})
-		return schedule
-	}
-
 	t.Run("Add new valid appointment to a schedule", func(t *testing.T) {
-		schedule := NewSchedule()
+		schedule := newTestSchedule(baseDateTime)
 
 		newAppointment, err := schedule.NewAppointment(baseDateTime)
 
@@ -54,7 +41,7 @@ func TestNewAppointment(t *testing.T) {
 	})
 
 	t.Run("Add new appointment to a schedule out of hour range", func(t *testing.T) {
-		schedule := NewSchedule()
+		schedule := newTestSchedule(baseDateTime)
 
 		newAppointment, err := schedule.NewAppointment(baseDateTime.Add(10 * time.Hour))
 

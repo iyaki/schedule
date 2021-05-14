@@ -5,15 +5,14 @@ import (
 	"time"
 )
 
-func TestDateTimeRule(t *testing.T) {
-	baseDateTime := time.Date(2021, time.May, 13, 14, 5, 0, 0, time.UTC)
+func newTestRule(baseDateTime time.Time) rule {
 	weekDay := baseDateTime.Weekday()
 	startDate := baseDateTime.AddDate(0, -14, 0)
 	endDate := baseDateTime.AddDate(0, 14, 0)
 	dailyStartTime := baseDateTime.Add(-time.Hour)
 	dailyEndTime := baseDateTime.Add(time.Hour)
 
-	var rule rule = dateTimeRule{
+	return dateTimeRule{
 		basicRule: basicRule{
 			weekDay:        weekDay,
 			startDate:      startDate,
@@ -22,6 +21,12 @@ func TestDateTimeRule(t *testing.T) {
 			dailyEndTime:   dailyEndTime,
 		},
 	}
+}
+
+func TestDateTimeRule(t *testing.T) {
+	baseDateTime := time.Date(2021, time.May, 13, 14, 5, 0, 0, time.UTC)
+
+	rule := newTestRule(baseDateTime)
 
 	t.Run("Valid appointment same day", func(t *testing.T) {
 		appointment := appointment{datetime: baseDateTime}
