@@ -13,7 +13,7 @@ func newTestRule(baseDateTime time.Time) rule {
 	dailyEndTime := baseDateTime.Add(time.Hour)
 
 	return dateTimeRule{
-		basicRule: basicRule{
+		baseRule: baseRule{
 			weekDay:        weekDay,
 			startDate:      startDate,
 			endDate:        endDate,

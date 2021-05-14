@@ -7,7 +7,7 @@ type rule interface {
 	isValid(schedulable) bool
 }
 
-type basicRule struct {
+type baseRule struct {
 	weekDay        time.Weekday
 	startDate      time.Time
 	endDate        time.Time
@@ -15,14 +15,14 @@ type basicRule struct {
 	dailyEndTime   time.Time
 }
 
-func (r basicRule) isApplicable(appointment schedulable) bool {
+func (r baseRule) isApplicable(appointment schedulable) bool {
 	return r.weekDay == appointment.Datetime().Weekday() &&
 		isDateInRange(appointment.Datetime(), r.startDate, r.endDate) &&
 		isTimeInRange(appointment.Datetime(), r.dailyStartTime, r.dailyEndTime)
 }
 
 type dateTimeRule struct {
-	basicRule
+	baseRule
 }
 
 func (r dateTimeRule) isValid(appointment schedulable) bool {
